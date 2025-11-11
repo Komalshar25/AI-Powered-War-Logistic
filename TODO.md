@@ -1,0 +1,5 @@
+- [x] Update pom.xml: Change name and description to Routheon.ai
+- [x] Update README.md: Change title and description to Routheon.ai
+- [x] Update WarLogisticsApplication.java: Change running message and localUrl to http://Routheon.ai
+- [x] Update login.html: Change title and h1 to Routheon.ai
+- [x] Update dashboard.html: Change title and h1 to Routheon.ai

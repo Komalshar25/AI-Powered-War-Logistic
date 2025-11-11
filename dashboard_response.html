@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>War Logistics Optimizer - Dashboard</title>
+
+    <!-- Load OpenLayers CSS (New Tech Stack) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/css/ol.css" type="text/css">
+
+    <style>
+        /* Custom styles for a clean, professional look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Control Panel (Above the map) */
+        .control-panel {
+            padding: 20px;
+            background-color: #e6f0ff; /* Very light blue header */
+            border-bottom: 2px solid #1a335a; /* Deep Navy accent */
+            flex-shrink: 0;
+        }
+
+        .control-panel h1 {
+            color: #1a335a; /* Deep Navy */
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1a335a; /* Deep Navy */
+            font-size: 0.9rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cce;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        button {
+            background-color: #1a335a; /* Deep Navy for action */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #4a7099; /* Medium Blue on hover */
+        }
+
+        /* Map Container (Below the controls) - Full screen */
+        #map {
+            flex: 1;
+            width: 100%;
+            background-color: #add8e6; /* Light blue background as fallback */
+            border: 2px solid #1a335a; /* Add border to make it visible */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a335a;
+            font-weight: bold;
+        }
+
+        /* Custom styles to make OpenLayers markers visible */
+        .ol-popup {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .ol-popup-content {
+            font-size: 0.9rem;
+        }
+
+        /* Results display */
+        .results {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ccc;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: none;
+            z-index: 1000;
+        }
+
+        .results h2 {
+            color: #1a335a;
+            margin-bottom: 10px;
+        }
+
+        .results p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <h1>War Logistics Optimizer - Safest Route Calculator</h1>
+            <form id="logisticsForm">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="origin">Origin Location</label>
+                        <input type="text" id="origin" name="origin" placeholder="e.g., Base A" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="destination">Destination Location</label>
+                        <input type="text" id="destination" name="destination" placeholder="e.g., Frontline B" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="cargoType">Cargo Type</label>
+                        <select id="cargoType" name="cargoType" required>
+                            <option value="">Select Type</option>
+                            <option value="AMMUNITION">Ammunition</option>
+                            <option value="FUEL">Fuel</option>
+                            <option value="MEDICAL">Medical Supplies</option>
+                            <option value="FOOD">Food</option>
+                            <option value="EQUIPMENT">Equipment</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" min="1" placeholder="e.g., 100" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="priority">Priority Level</label>
+                        <select id="priority" name="priority" required>
+                            <option value="">Select Priority</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="CRITICAL">Critical</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="threatLevel">Threat Level</label>
+                        <select id="threatLevel" name="threatLevel" required>
+                            <option value="">Select Threat</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit">Calculate Safest Route</button>
+            </form>
+        </div>
+        <div id="map">Map Loading...</div>
+        <div class="results" id="results">
+            <h2>Route Results</h2>
+            <p id="routeInfo"></p>
+            <p id="safetyScore"></p>
+            <p id="estimatedTime"></p>
+        </div>
+    </div>
+
+    <!-- Load OpenLayers JS -->
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/build/ol.js"></script>
+    <script>
+        // Initialize the map
+        const map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([78.9629, 20.5937]), // Center on India
+                zoom: 5, // Zoom level to show India
+                minZoom: 4, // Prevent zooming out too far
+                maxZoom: 12 // Prevent zooming in too much
+            })
+        });
+
+        // Vector layer for routes
+        const routeLayer = new ol.layer.Vector({
+            source: new ol.source.Vector()
+        });
+        map.addLayer(routeLayer);
+
+        // Form submission
+        document.getElementById('logisticsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                origin: formData.get('origin'),
+                destination: formData.get('destination'),
+                cargoType: formData.get('cargoType'),
+                quantity: parseInt(formData.get('quantity')),
+                priority: formData.get('priority'),
+                threatLevel: formData.get('threatLevel')
+            };
+
+            // Call logistics API
+            fetch('/api/logistics/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                displayResults(result);
+                if (result.route) {
+                    drawRoute(result.route);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error calculating route. Please try again.');
+            });
+        });
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const routeInfo = document.getElementById('routeInfo');
+            const safetyScore = document.getElementById('safetyScore');
+            const estimatedTime = document.getElementById('estimatedTime');
+
+            routeInfo.textContent = `Route: ${result.origin} to ${result.destination}`;
+            safetyScore.textContent = `Safety Score: ${result.safetyScore || 'N/A'}`;
+            estimatedTime.textContent = `Estimated Time: ${result.estimatedTime || 'N/A'}`;
+
+            resultsDiv.style.display = 'block';
+        }
+
+        function drawRoute(routeCoordinates) {
+            // Clear previous routes
+            routeLayer.getSource().clear();
+
+            // Assuming routeCoordinates is an array of [lon, lat] pairs
+            const coordinates = routeCoordinates.map(coord => ol.proj.fromLonLat(coord));
+
+            const routeFeature = new ol.Feature({
+                geometry: new ol.geom.LineString(coordinates)
+            });
+
+            routeFeature.setStyle(new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: '#1a335a',
+                    width: 3
+                })
+            }));
+
+            routeLayer.getSource().addFeature(routeFeature);
+
+            // Fit map to route
+            const extent = routeLayer.getSource().getExtent();
+            map.getView().fit(extent, { padding: [20, 20, 20, 20] });
+        }
+    </script>
+</body>
+</html>
+
