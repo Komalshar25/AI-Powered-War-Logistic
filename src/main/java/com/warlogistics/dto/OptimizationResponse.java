@@ -1,5 +1,13 @@
 package com.warlogistics.dto;
 
+public class OptimizationResponse {
+    private String summary;
+
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
+}
+package com.warlogistics.dto;
+
 import java.util.List;
 
 public class OptimizationResponse {

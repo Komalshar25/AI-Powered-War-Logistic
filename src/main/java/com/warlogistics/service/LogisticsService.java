@@ -1,5 +1,13 @@
 package com.warlogistics.service;
 
+import org.springframework.stereotype.Service;
+
+@Service
+public class LogisticsService {
+    // placeholder for logistics-related business logic
+}
+package com.warlogistics.service;
+
 import com.warlogistics.dto.LogisticsRequest;
 import com.warlogistics.dto.LogisticsResponse;
 import com.warlogistics.model.Logistics;

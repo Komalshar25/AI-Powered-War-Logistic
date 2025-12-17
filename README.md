@@ -1,5 +1,10 @@
 # War Logistics Optimizer
 
+This repository contains a simple Spring Boot skeleton for a war logistics optimizer web application.
+
+Structure created to match requested layout; implement services and controllers as needed.
+# War Logistics Optimizer
+
 A Spring Boot application for optimizing logistics in war scenarios, providing efficient routing, resource allocation, and safety considerations.
 
 ## Features

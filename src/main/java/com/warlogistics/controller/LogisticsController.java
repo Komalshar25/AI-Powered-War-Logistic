@@ -2,6 +2,24 @@ package com.warlogistics.controller;
 
 import com.warlogistics.dto.LogisticsRequest;
 import com.warlogistics.dto.LogisticsResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/logistics")
+public class LogisticsController {
+
+    @PostMapping("/calculate")
+    public ResponseEntity<LogisticsResponse> calculate(@RequestBody LogisticsRequest req) {
+        LogisticsResponse r = new LogisticsResponse();
+        r.setMessage("Not implemented");
+        return ResponseEntity.ok(r);
+    }
+}
+package com.warlogistics.controller;
+
+import com.warlogistics.dto.LogisticsRequest;
+import com.warlogistics.dto.LogisticsResponse;
 import com.warlogistics.service.LogisticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

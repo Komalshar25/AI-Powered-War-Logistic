@@ -4,6 +4,20 @@ import com.warlogistics.dto.OptimizationRequest;
 import com.warlogistics.dto.OptimizationResponse;
 import org.springframework.stereotype.Service;
 
+@Service
+public class OptimizationService {
+    public OptimizationResponse optimize(OptimizationRequest req) {
+        OptimizationResponse res = new OptimizationResponse();
+        res.setSummary("No optimization implemented yet for: " + req.getMissionName());
+        return res;
+    }
+}
+package com.warlogistics.service;
+
+import com.warlogistics.dto.OptimizationRequest;
+import com.warlogistics.dto.OptimizationResponse;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 
 @Service

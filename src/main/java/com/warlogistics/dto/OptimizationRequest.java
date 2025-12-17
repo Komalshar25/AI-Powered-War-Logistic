@@ -1,6 +1,14 @@
 package com.warlogistics.dto;
 
 public class OptimizationRequest {
+    private String missionName;
+
+    public String getMissionName() { return missionName; }
+    public void setMissionName(String missionName) { this.missionName = missionName; }
+}
+package com.warlogistics.dto;
+
+public class OptimizationRequest {
     private String startLocation;
     private String endLocation;
     private int troops;

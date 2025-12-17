@@ -1,3 +1,5 @@
+// Minimal frontend JS placeholder
+console.log('war-logistics app loaded');
 // Basic JavaScript for the War Logistics Optimizer application
 
 document.addEventListener('DOMContentLoaded', function() {

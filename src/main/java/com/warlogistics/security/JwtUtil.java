@@ -1,5 +1,16 @@
 package com.warlogistics.security;
 
+import org.springframework.stereotype.Component;
+
+@Component
+public class JwtUtil {
+    public String generateToken(String username) {
+        // placeholder token logic
+        return "jwt-token-for-" + username;
+    }
+}
+package com.warlogistics.security;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;

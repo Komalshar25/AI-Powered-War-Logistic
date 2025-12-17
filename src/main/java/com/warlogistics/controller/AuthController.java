@@ -1,6 +1,22 @@
 package com.warlogistics.controller;
 
 import com.warlogistics.dto.LoginRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest req) {
+        // placeholder: accept any credentials for now
+        return ResponseEntity.ok("token-placeholder");
+    }
+}
+package com.warlogistics.controller;
+
+import com.warlogistics.dto.LoginRequest;
 import com.warlogistics.service.AuthService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;

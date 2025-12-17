@@ -1,5 +1,16 @@
 package com.warlogistics.service;
 
+import org.springframework.stereotype.Service;
+
+@Service
+public class AuthService {
+    public String authenticate(String username, String password) {
+        // placeholder: return a dummy token
+        return "token-placeholder";
+    }
+}
+package com.warlogistics.service;
+
 import com.warlogistics.dto.LoginRequest;
 import com.warlogistics.model.User;
 import com.warlogistics.repository.UserRepository;
