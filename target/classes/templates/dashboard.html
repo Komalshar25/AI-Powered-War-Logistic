@@ -1,0 +1,627 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard</h1>
+    <p>Welcome to the War Logistics Dashboard.</p>
+  </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routheon.ai - Logistics Calculator and Map Visualizer (Safest Route) - OpenLayers</title>
+    
+    <!-- Load OpenLayers CSS (New Tech Stack) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/css/ol.css" type="text/css">
+    
+    <style>
+        /* Custom styles for a clean, professional look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            margin: 10px auto;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Control Panel (Above the map) */
+        .control-panel {
+            padding: 20px;
+            background-color: #e6f0ff; /* Very light blue header */
+            border-bottom: 2px solid #1a335a; /* Deep Navy accent */
+        }
+
+        .control-panel h1 {
+            color: #1a335a; /* Deep Navy */
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1a335a; /* Deep Navy */
+            font-size: 0.9rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cce;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        button {
+            background-color: #1a335a; /* Deep Navy for action */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #4a7099; /* Medium Blue on hover */
+        }
+        
+        /* Map Container (Below the controls) - Mobile Focused */
+        #map {
+            height: 400px; /* Adjusted height for OpenLayers rendering */
+            width: 100%;
+            border-top: 1px solid #ccc;
+            /* Added max-width to restrict visual extent on large screens, while keeping it mobile-friendly */
+            max-width: 1000px; 
+            margin: 0 auto;
+        }
+        
+        /* Custom styles to make OpenLayers markers visible */
+        .ol-popup {
+            position: absolute;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            bottom: 12px;
+            left: -50px;
+            min-width: 200px;
+        }
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+        .ol-popup:after {
+            border-top-color: white;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+
+        /* Results Area */
+        .results {
+            padding: 20px;
+            background-color: #fff;
+            border-top: 2px dashed #eee;
+        }
+
+        .results h2 {
+            color: #1a335a; /* Deep Navy for analysis */
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .output-box {
+            background-color: #f0f8ff; /* Very light blue background for results */
+            border: 1px solid #4a7099; /* Medium Blue border */
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 600px) {
+            .control-panel h1 {
+                font-size: 1.3rem;
+            }
+            .input-grid {
+                grid-template-columns: 1fr; /* Stack inputs on mobile */
+            }
+            #map {
+                height: 300px; /* Ensure map is visible on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="control-panel">
+        <h1>🇮🇳 Routheon.ai - Safest Route Logistics & Map Visualizer (OpenLayers)</h1>
+        <div style="text-align: center; margin-top: 10px;">
+            <a href="/login" style="color: #1a335a; text-decoration: none; font-size: 0.9rem;">← Back to Login</a>
+        </div>
+        
+        <div class="input-grid">
+            
+            <!-- Start Location -->
+            <div class="input-group">
+                <label for="startLocation">Start Base:</label>
+                <select id="startLocation">
+                    <option value="DELHI">New Delhi (HQ)</option>
+                    <option value="MUMBAI">Mumbai (Port/Logistics)</option>
+                    <option value="CHENNAI">Chennai (Naval/Supply)</option>
+                </select>
+            </div>
+
+            <!-- End Location -->
+            <div class="input-group">
+                <label for="endLocation">Target Sector:</label>
+                <select id="endLocation">
+                    <option value="SRINAGAR">Srinagar (Forward Base)</option>
+                    <option value="LEH">Leh (High Altitude)</option>
+                    <option value="GUWAHATI">Guwahati (Eastern Sector)</option>
+                </select>
+            </div>
+
+            <!-- Troops Input -->
+            <div class="input-group">
+                <label for="troops">Troops (Personnel):</label>
+                <input type="number" id="troops" value="100" min="10" max="1000">
+            </div>
+
+            <!-- Vehicles Input -->
+            <div class="input-group">
+                <label for="vehicles">Vehicles (Trucks/APCs):</label>
+                <input type="number" id="vehicles" value="10" min="1" max="50">
+            </div>
+
+            <!-- Food Supply Input -->
+            <div class="input-group">
+                <label for="foodSupply">Food Supply (Days):</label>
+                <input type="number" id="foodSupply" value="7" min="1" max="30">
+            </div>
+
+            <!-- Weapons Supply Input (Simple detailing) -->
+            <div class="input-group">
+                <label for="weaponsSupply">Weapons Supply (Tons):</label>
+                <input type="number" id="weaponsSupply" value="5" min="1" max="50">
+            </div>
+            
+            <!-- Other Detailing - Road Condition -->
+            <div class="input-group">
+                <label for="roadCondition">Road Condition (Simulated):</label>
+                <select id="roadCondition">
+                    <option value="1.0">Excellent (1.0x speed)</option>
+                    <option value="0.8">Normal (0.8x speed)</option>
+                    <option value="0.5">Difficult (0.5x speed)</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="optimizeLogistics()">
+            Find Safest Route & Calculate Logistics
+        </button>
+
+        <div class="results">
+            <h2>Logistics Analysis</h2>
+            <div class="output-box" id="resultsOutput">
+                Select locations and resources, then click 'Find Safest Route & Calculate Logistics'.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Map Container (Place map down) -->
+    <div id="map"></div>
+
+</div>
+
+<!-- OpenLayers Library (New Tech Stack) -->
+<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/build/ol.js"></script>
+
+<script>
+    // --- 1. Map Initialization and Setup ---
+
+    let map = null;
+    let vectorSource = null; // OpenLayers Source for features (markers and lines)
+    let vectorLayer = null;  // OpenLayers Layer to hold the source
+
+    // Define key Indian logistics locations (Nodes in our Graph)
+    const LOCATIONS = {
+        DELHI: { name: "New Delhi (HQ)", lat: 28.6139, lng: 77.2090, role: "National HQ" },
+        MUMBAI: { name: "Mumbai (Logistics Hub)", lat: 19.0760, lng: 72.8777, role: "Naval/Supply Port" },
+        CHENNAI: { name: "Chennai (Southern Supply)", lat: 13.0827, lng: 80.2707, role: "Ammunition/Supply Depot" },
+        SRINAGAR: { name: "Srinagar (Forward Base)", lat: 34.0837, lng: 74.7973, role: "Critical Forward Post" },
+        LEH: { name: "Leh (High Altitude)", lat: 34.1526, lng: 77.5770, role: "High Altitude Base" },
+        GUWAHATI: { name: "Guwahati (Eastern Sector)", lat: 26.1445, lng: 91.7368, role: "Eastern Sector Transit" }
+    };
+
+    // --- 2. Haversine Formula for Distance Calculation (Edge Weights) ---
+    // Calculates great-circle distance (km) between two coordinates
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of Earth in kilometers
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in km
+    }
+
+    // --- 3. Safety-Weighted Network Graph Definition (Same Dijkstra weights) ---
+    
+    /**
+     * Calculates the Safety Cost for an edge (weight for Dijkstra's).
+     */
+    function calculateSafetyCost(locA, locB, riskIndex, roadFactor) {
+        const dist = getDistance(LOCATIONS[locA].lat, LOCATIONS[locA].lng, LOCATIONS[locB].lat, LOCATIONS[locB].lng);
+        // Cost is heavily weighted by distance but increased by the risk index
+        return (dist * roadFactor) + riskIndex * 10; 
+    }
+
+    // Define the graph structure with pre-calculated Safety Cost as the weight.
+    const GRAPH = {
+        DELHI: { 
+            MUMBAI: calculateSafetyCost('DELHI', 'MUMBAI', 10, 1.25),
+            SRINAGAR: calculateSafetyCost('DELHI', 'SRINAGAR', 80, 1.5), 
+            LEH: calculateSafetyCost('DELHI', 'LEH', 90, 1.8),         
+            GUWAHATI: calculateSafetyCost('DELHI', 'GUWAHATI', 20, 1.3)
+        },
+        MUMBAI: { 
+            DELHI: calculateSafetyCost('MUMBAI', 'DELHI', 10, 1.25),
+            CHENNAI: calculateSafetyCost('MUMBAI', 'CHENNAI', 5, 1.15)
+        },
+        CHENNAI: { 
+            MUMBAI: calculateSafetyCost('CHENNAI', 'MUMBAI', 5, 1.15),
+            GUWAHATI: calculateSafetyCost('CHENNAI', 'GUWAHATI', 30, 1.4)
+        },
+        SRINAGAR: { 
+            DELHI: calculateSafetyCost('SRINAGAR', 'DELHI', 80, 1.5),
+            // FIX: Corrected typo from calculateSafetySafetyCost to calculateSafetyCost
+            LEH: calculateSafetyCost('SRINAGAR', 'LEH', 40, 1.2)
+        },
+        LEH: { 
+            DELHI: calculateSafetyCost('LEH', 'DELHI', 90, 1.8),
+            SRINAGAR: calculateSafetyCost('LEH', 'SRINAGAR', 40, 1.2)
+        },
+        GUWAHATI: { 
+            DELHI: calculateSafetyCost('GUWAHATI', 'DELHI', 20, 1.3),
+            CHENNAI: calculateSafetyCost('GUWAHATI', 'CHENNAI', 30, 1.4)
+        }
+    };
+
+    // --- 4. Utility: Priority Queue for Dijkstra's Algorithm ---
+    class PriorityQueue {
+        constructor() {
+            this.values = [];
+        }
+        enqueue(val, priority) {
+            this.values.push({val, priority});
+            this.sort();
+        }
+        dequeue() {
+            return this.values.shift();
+        }
+        sort() {
+            this.values.sort((a, b) => a.priority - b.priority);
+        }
+        isEmpty() {
+            return this.values.length === 0;
+        }
+    }
+
+
+    // --- 5. Dijkstra's Algorithm Implementation (Minimizes Safety Cost) ---
+    function dijkstra(start, end) {
+        if (!GRAPH[start] || !GRAPH[end]) {
+            return { path: null, cost: Infinity, distance: Infinity };
+        }
+        
+        const costs = {};
+        const distances = {};
+        const previous = {};
+        const pq = new PriorityQueue();
+        
+        for (let node in LOCATIONS) {
+            costs[node] = Infinity;
+            distances[node] = Infinity;
+            previous[node] = null;
+        }
+        
+        costs[start] = 0;
+        distances[start] = 0;
+        pq.enqueue(start, 0);
+        
+        let smallest;
+        
+        while (!pq.isEmpty()) {
+            smallest = pq.dequeue().val;
+            
+            if (smallest === end) {
+                const path = [];
+                let current = end;
+                while (current) {
+                    path.unshift(current);
+                    current = previous[current];
+                }
+                return { 
+                    path: path, 
+                    cost: costs[end],
+                    distance: distances[end] 
+                };
+            }
+            
+            if (smallest && costs[smallest] !== Infinity) {
+                for (let neighbor in GRAPH[smallest]) {
+                    let safetyCostToNeighbor = GRAPH[smallest][neighbor];
+                    let newSafetyCost = costs[smallest] + safetyCostToNeighbor;
+
+                    const distA = getDistance(LOCATIONS[smallest].lat, LOCATIONS[smallest].lng, LOCATIONS[neighbor].lat, LOCATIONS[neighbor].lng);
+                    const newDistance = distances[smallest] + (distA * 1.3); 
+                    
+                    if (newSafetyCost < costs[neighbor]) {
+                        costs[neighbor] = newSafetyCost;
+                        distances[neighbor] = newDistance;
+                        previous[neighbor] = smallest;
+                        pq.enqueue(neighbor, newSafetyCost);
+                    }
+                }
+            }
+        }
+
+        return { path: null, cost: Infinity, distance: Infinity };
+    }
+
+    // --- 6. Main Optimization Function ---
+    function optimizeLogistics() {
+        const startKey = document.getElementById('startLocation').value;
+        const endKey = document.getElementById('endLocation').value;
+        const troops = parseInt(document.getElementById('troops').value);
+        const vehicles = parseInt(document.getElementById('vehicles').value);
+        const foodSupply = parseInt(document.getElementById('foodSupply').value);
+        const weaponsSupply = parseInt(document.getElementById('weaponsSupply').value);
+        const roadConditionFactor = parseFloat(document.getElementById('roadCondition').value);
+        const resultsOutput = document.getElementById('resultsOutput');
+
+        resultsOutput.innerHTML = '<p>Running Dijkstra Safest Path Algorithm...</p>';
+
+        if (!map) {
+             resultsOutput.innerHTML = '<p style="color: #dc3545;">Map object is null. Initialization failed or is pending.</p>';
+             return;
+        }
+
+        // --- A. Run Dijkstra's Safest Pathfinding ---
+        const pathfindingResult = dijkstra(startKey, endKey);
+        const safestCost = pathfindingResult.cost;
+        const actualDistanceKm = pathfindingResult.distance;
+
+        if (safestCost === Infinity) {
+            resultsOutput.innerHTML = `<p style="color: #dc3545;"><strong>Error:</strong> No path found between ${startKey} and ${endKey} in the logistics network!</p>`;
+            return;
+        }
+
+        // --- B. Logistics Calculation Logic (Same as before) ---
+        const averageSpeedKPH = 50; 
+        const totalDrivingHours = actualDistanceKm / averageSpeedKPH;
+        const baseDays = (totalDrivingHours / 12) / roadConditionFactor;
+        const totalLoadTons = (troops * 0.05) + weaponsSupply;
+        const requiredVehicles = Math.ceil(totalLoadTons / 5);
+        const vehicleDeficiency = Math.max(0, requiredVehicles - vehicles);
+        const foodBufferDays = foodSupply - baseDays;
+        const logisticalRisk = (vehicleDeficiency * 5) + (Math.max(0, -foodBufferDays) * 10);
+        const finalRiskScore = logisticalRisk + (safestCost / 1000); 
+
+        // --- C. Generate Optimization Feedback (Same as before) ---
+        let feedback = "";
+        let color = "#2ecc71"; // Green for HIGH
+        let efficiencyText = "HIGH";
+
+        if (finalRiskScore < 5) {
+            feedback = "Optimal balance. Route chosen minimizes safety cost, and resources match estimated travel time/load.";
+        } else if (finalRiskScore < 15) {
+            efficiencyText = "MEDIUM";
+            color = "#f39c12"; // Yellow/Orange for MEDIUM
+            feedback = `Minor logistical concerns or a slightly higher route safety cost. Recommended vehicles: ${requiredVehicles}. Suggest increasing buffer resources.`;
+        } else {
+            efficiencyText = "LOW (CRITICAL)";
+            color = "#e74c3c"; // Red for CRITICAL
+            feedback = `**CRITICAL RISK:** High logistical deficiency OR the safest route itself has a very high base cost. Required vehicles: ${requiredVehicles}. Food supply buffer: ${foodBufferDays.toFixed(1)} days.`;
+        }
+        
+        // --- D. OpenLayers Map Visualization ---
+        
+        // 1. Clear old features
+        vectorSource.clear();
+
+        // 2. Get the coordinate list and convert to OpenLayers Web Mercator format ([lng, lat] -> [x, y])
+        // OpenLayers uses [longitude, latitude] internally for WGS84 coordinates.
+        const pathCoords = pathfindingResult.path.map(key => {
+            const loc = LOCATIONS[key];
+            return ol.proj.fromLonLat([loc.lng, loc.lat]);
+        });
+
+        // 3. Create Polyline Feature (The Route)
+        const routeFeature = new ol.Feature({
+            geometry: new ol.geom.LineString(pathCoords)
+        });
+
+        routeFeature.setStyle(new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: '#e74c3c', // Bright Red for Route
+                width: 4
+            })
+        }));
+        vectorSource.addFeature(routeFeature);
+
+        // 4. Create Marker Styles
+        const startLoc = LOCATIONS[startKey];
+        const endLoc = LOCATIONS[endKey];
+        
+        // Style for START Marker (Green circle)
+        const startStyle = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 8,
+                fill: new ol.style.Fill({ color: '#2ecc71' }), // Green
+                stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
+            })
+        });
+
+        // Style for END Marker (Bright Red circle)
+        const endStyle = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 8,
+                fill: new ol.style.Fill({ color: '#e74c3c' }), // Bright Red
+                stroke: new ol.style.Stroke({ color: '#fff', width: 2 })
+            })
+        });
+
+        // 5. Add Markers
+        
+        // START Marker
+        const startCoord = ol.proj.fromLonLat([startLoc.lng, startLoc.lat]);
+        const startFeature = new ol.Feature({
+            geometry: new ol.geom.Point(startCoord),
+            name: `START: ${startLoc.name}`,
+            type: 'start'
+        });
+        startFeature.setStyle(startStyle);
+        vectorSource.addFeature(startFeature);
+        
+        // END Marker
+        const endCoord = ol.proj.fromLonLat([endLoc.lng, endLoc.lat]);
+        const endFeature = new ol.Feature({
+            geometry: new ol.geom.Point(endCoord),
+            name: `END: ${endLoc.name}`,
+            details: `Target: ${troops} Troops, ${weaponsSupply} Tons.`,
+            type: 'end'
+        });
+        endFeature.setStyle(endStyle);
+        vectorSource.addFeature(endFeature);
+        
+        // 6. Zoom to fit the route
+        map.getView().fit(vectorSource.getExtent(), {
+            padding: [50, 50, 50, 50], // Add padding around the bounds
+            duration: 1000
+        });
+            
+        // 7. Display the detailed results
+        const detailedResults = `
+            <p><strong>Logistics Risk Level:</strong> <span style="color: ${color};">${efficiencyText}</span></p>
+            <p><strong>Safest Route (Minimizing Cost):</strong> ${pathfindingResult.path.join(' &rarr; ')}</p>
+            <p><strong>Total Safety Cost (Route Index):</strong> ${safestCost.toFixed(0)}</p>
+            <p><strong>Estimated Road Distance:</strong> ${actualDistanceKm.toFixed(0)} km (based on safest route path)</p>
+            <p><strong>Estimated Travel Time (Days):</strong> ${baseDays.toFixed(1)} days</p>
+            <p><strong>Required Vehicles (for load):</strong> ${requiredVehicles}</p>
+            <p><strong>Food Supply Buffer:</strong> ${foodBufferDays.toFixed(1)} days</p>
+            <p><strong>Analysis:</strong> ${feedback}</p>
+        `;
+        resultsOutput.innerHTML = detailedResults;
+    }
+    
+    // --- 7. OpenLayers Map Initialization ---
+    
+    function initializeMap() {
+        const resultsOutput = document.getElementById('resultsOutput');
+        
+        // The ol (OpenLayers) object should be available due to window.onload
+        if (typeof ol === 'undefined' || typeof ol.Map !== 'function') {
+             resultsOutput.innerHTML = '<p style="color: #dc3545;"><strong>Map Creation Error:</strong> The OpenLayers library is not fully initialized. Check CDN link.</p>';
+             console.error("OpenLayers object 'ol' not found or ol.Map is not a function.");
+             return;
+        }
+
+        try {
+            // Define the bounding box for India (WGS84: [minLon, minLat, maxLon, maxLat])
+            // This roughly covers the main landmass plus surrounding sea area for context.
+            const indiaExtentWGS84 = [65, 5, 100, 38]; 
+            // Convert to Web Mercator (EPSG:3857) which OpenLayers uses for the view
+            const indiaExtent = ol.proj.transformExtent(indiaExtentWGS84, 'EPSG:4326', 'EPSG:3857');
+
+            // 1. Create the Vector Source and Layer for drawing polylines and markers
+            vectorSource = new ol.source.Vector();
+            vectorLayer = new ol.layer.Vector({
+                source: vectorSource
+            });
+            
+            // 2. Define the main Map object
+            map = new ol.Map({
+                target: 'map', // Target element ID
+                layers: [
+                    // Base Tile Layer (OpenStreetMap)
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM()
+                    }),
+                    // Vector Layer for our features (routes and points)
+                    vectorLayer 
+                ],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([78.5, 23.5]), // Central India coordinates
+                    zoom: 5,
+                    extent: indiaExtent, // Restrict panning outside of this box
+                    minZoom: 4,          // Prevent zooming too far out
+                })
+            });
+
+            // Run initial calculation to populate the map and results
+            optimizeLogistics();
+            
+        } catch (e) {
+            resultsOutput.innerHTML = `<p style="color: #dc3545;"><strong>Map Creation Error:</strong> Map initialization failed: ${e.message}</p>`;
+            console.error("Map creation failed:", e);
+        }
+    }
+    
+    // Wait for the entire window content (including the OpenLayers script) to load 
+    // before attempting to initialize the map.
+    window.onload = initializeMap;
+
+</script>
+
+</body>
+</html>
